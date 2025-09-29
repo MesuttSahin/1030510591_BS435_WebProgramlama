@@ -1,1 +1,3 @@
-# 1030510591_BS435_WebProgramlama
+Öğrenci Numarası: 1030510591
+Öğrenci Adı: Mesut Şahin
+Ders Adı: BS435 Web Programlama
