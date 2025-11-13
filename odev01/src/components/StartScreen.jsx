@@ -6,11 +6,9 @@ function StartScreen() {
 
   return (
     <div className="screen">
-      <h1>AI Detector Game</h1>
-      <p>
-        Gerçek mi yoksa yapay mı? Üç görsel arasından AI tarafından üretilmiş olanı tahmin et!
-      </p>
-      <button onClick={() => navigate("/game")}>Başla</button>
+      <h1>Görsel Tahmin Oyunu 🎯</h1>
+      <p>Her turda doğru görseli seçerek puan kazan!</p>
+      <button onClick={() => navigate("/game")}>Oyunu Başlat</button>
     </div>
   );
 }
