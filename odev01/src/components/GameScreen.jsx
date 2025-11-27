@@ -1,46 +1,54 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function GameScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const mode = location.state?.mode || "easy";
 
-  // ÖRNEK GÖRSELLER (ileride backend veya gerçek linklerle değiştirilebilir)
-  const images = [
-    { id: 1, src: "/img1.jpg", isAI: false },
-    { id: 2, src: "/img2.jpg", isAI: true }, // AI üretilmiş görsel
-    { id: 3, src: "/img3.jpg", isAI: false },
+  // Görseller modlara göre değişiyor
+  const easyImages = [
+    { id: 1, src: "/easy1.jpg", isAI: false },
+    { id: 2, src: "/easy2.jpg", isAI: true },
+    { id: 3, src: "/easy3.jpg", isAI: false }
   ];
 
+  const mediumImages = [
+    { id: 1, src: "/mid1.jpg", isAI: true },
+    { id: 2, src: "/mid2.jpg", isAI: false },
+    { id: 3, src: "/mid3.jpg", isAI: false }
+  ];
+
+  // Mod seçimine göre görüntü seti geliyor
+  const images = mode === "easy" ? easyImages : mediumImages;
+
   const [hintVisible, setHintVisible] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
   const [isFirstTry, setIsFirstTry] = useState(true);
 
   const hints = [
-    "Arka plandaki dokulara dikkat et.",
-    "Yüz hatlarındaki simetriyi incele.",
-    "Gölgelendirme yapay geliyor olabilir."
+    "Işıklara dikkat et.",
+    "Arka plan detaylarını incele.",
+    "Gölgelendirmeye bak."
   ];
 
   const randomHint = hints[Math.floor(Math.random() * hints.length)];
 
-  const handleSelect = (img) => {
-    setSelectedId(img.id);
-
+  const handleGuess = (img) => {
     if (isFirstTry) {
       if (img.isAI) {
-        navigate("/result", { state: { success: true } });
+        navigate("/result", { state: { success: true, mode } });
       } else {
         setHintVisible(true);
         setIsFirstTry(false);
       }
     } else {
-      navigate("/result", { state: { success: img.isAI } });
+      navigate("/result", { state: { success: img.isAI, mode } });
     }
   };
 
   return (
     <div className="screen">
-      <h2>AI Üretilmiş Görseli Bul!</h2>
+      <h2>Mod: {mode === "easy" ? "Kolay" : "Orta"}</h2>
 
       <div className="images">
         {images.map((img) => (
@@ -48,7 +56,7 @@ function GameScreen() {
             key={img.id}
             src={img.src}
             className="game-img"
-            onClick={() => handleSelect(img)}
+            onClick={() => handleGuess(img)}
           />
         ))}
       </div>
