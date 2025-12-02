@@ -1,32 +1,70 @@
+/* Genel ekran düzeni */
 .screen {
-  text-align: center;
-  padding: 40px;
-}
-
-.image-container {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 20px;
-  margin-top: 30px;
+  height: 100vh;
+  padding: 20px;
+  text-align: center;
+  background: #fafafa;
+  font-family: Arial, sans-serif;
 }
 
-.image-container img {
-  width: 150px;
-  height: 150px;
+/* Mod seçim alanı */
+.mode-select {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+  font-size: 18px;
+}
+
+/* Başla butonu */
+.start-btn,
+button {
+  padding: 12px 18px;
+  margin-top: 20px;
+  border: none;
+  background-color: #4a78ff;
+  color: white;
+  border-radius: 8px;
   cursor: pointer;
-  border: 3px solid transparent;
-  border-radius: 10px;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #335fe0;
+}
+
+/* Oyun ekranı görselleri */
+.images {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.game-img {
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 4px solid transparent;
   transition: 0.3s;
 }
 
-.image-container img:hover {
-  transform: scale(1.1);
+.game-img:hover {
+  transform: scale(1.05);
+  border-color: #4a78ff;
 }
 
-h2 {
-  color: #333;
-}
-
-p {
-  font-size: 18px;
+/* İpucu kutusu */
+.hint-box {
+  margin-top: 24px;
+  padding: 16px 20px;
+  background-color: #fff3cd;
+  border: 1px solid #ffecb5;
+  border-radius: 10px;
+  font-size: 17px;
 }
