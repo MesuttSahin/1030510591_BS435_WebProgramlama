@@ -1,62 +1,98 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function GameScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const mode = location.state?.mode || "easy";
 
-  // Görseller modlara göre değişiyor
-  const easyImages = [
-    { id: 1, src: "/easy1.jpg", isAI: false },
-    { id: 2, src: "/easy2.jpg", isAI: true },
-    { id: 3, src: "/easy3.jpg", isAI: false }
-  ];
+  // StartScreen'den gelen zorluk modu
+  const selectedMode = location.state?.mode ?? "easy";
 
-  const mediumImages = [
-    { id: 1, src: "/mid1.jpg", isAI: true },
-    { id: 2, src: "/mid2.jpg", isAI: false },
-    { id: 3, src: "/mid3.jpg", isAI: false }
-  ];
-
-  // Mod seçimine göre görüntü seti geliyor
-  const images = mode === "easy" ? easyImages : mediumImages;
-
+  const [images, setImages] = useState([]);
   const [hintVisible, setHintVisible] = useState(false);
   const [isFirstTry, setIsFirstTry] = useState(true);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [score, setScore] = useState(0);
 
-  const hints = [
-    "Işıklara dikkat et.",
-    "Arka plan detaylarını incele.",
-    "Gölgelendirmeye bak."
+  const totalRounds = selectedMode === "easy" ? 5 : 8;
+
+  // Örnek görseller (AI ve gerçek karışık)
+  const imagePool = [
+    { src: "/ai1.jpg", isAI: true },
+    { src: "/ai2.jpg", isAI: true },
+    { src: "/real1.jpg", isAI: false },
+    { src: "/real2.jpg", isAI: false },
+    { src: "/real3.jpg", isAI: false },
+    { src: "/real4.jpg", isAI: false },
   ];
 
+  const hintsEasy = [
+    "Arka plan detaylarına dikkat et.",
+    "Gölgelendirmeye bak.",
+  ];
+
+  const hintsHard = [
+    "Yüz simetrisine dikkat et.",
+    "Gözlerdeki yapay parlaklığa bak.",
+    "Cilt dokusundaki kusursuzluğu incele.",
+  ];
+
+  const hints = selectedMode === "easy" ? hintsEasy : hintsHard;
   const randomHint = hints[Math.floor(Math.random() * hints.length)];
 
-  const handleGuess = (img) => {
+  // Her tur 3 görseli karıştırıp seç
+  const generateImages = () => {
+    const aiImages = imagePool.filter(img => img.isAI);
+    const realImages = imagePool.filter(img => !img.isAI);
+
+    const randomAI = aiImages[Math.floor(Math.random() * aiImages.length)];
+    const randomReals = realImages.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+    const combined = [...randomReals, randomAI].sort(() => Math.random() - 0.5);
+    setImages(combined);
+  };
+
+  useEffect(() => {
+    generateImages();
+  }, [currentRound]);
+
+  const handleSelect = (img) => {
     if (isFirstTry) {
       if (img.isAI) {
-        navigate("/result", { state: { success: true, mode } });
+        setScore(score + 1);
+        nextRound();
       } else {
         setHintVisible(true);
         setIsFirstTry(false);
       }
     } else {
-      navigate("/result", { state: { success: img.isAI, mode } });
+      if (img.isAI) setScore(score + 1);
+      nextRound();
     }
+  };
+
+  const nextRound = () => {
+    if (currentRound >= totalRounds) {
+      navigate("/result", { state: { score, totalRounds } });
+      return;
+    }
+
+    setHintVisible(false);
+    setIsFirstTry(true);
+    setCurrentRound(currentRound + 1);
   };
 
   return (
     <div className="screen">
-      <h2>Mod: {mode === "easy" ? "Kolay" : "Orta"}</h2>
+      <h2>Tur {currentRound} / {totalRounds}</h2>
 
       <div className="images">
-        {images.map((img) => (
+        {images.map((img, index) => (
           <img
-            key={img.id}
+            key={index}
             src={img.src}
             className="game-img"
-            onClick={() => handleGuess(img)}
+            onClick={() => handleSelect(img)}
           />
         ))}
       </div>
@@ -64,7 +100,6 @@ function GameScreen() {
       {hintVisible && (
         <div className="hint-box">
           <p>❗ İpucu: {randomHint}</p>
-          <p>Tekrar seçim yap!</p>
         </div>
       )}
     </div>
