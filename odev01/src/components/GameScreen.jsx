@@ -18,13 +18,16 @@ function GameScreen() {
 
   // Örnek görseller (AI ve gerçek karışık)
   const imagePool = [
-    { src: "/ai1.jpg", isAI: true },
-    { src: "/ai2.jpg", isAI: true },
-    { src: "/real1.jpg", isAI: false },
-    { src: "/real2.jpg", isAI: false },
-    { src: "/real3.jpg", isAI: false },
-    { src: "/real4.jpg", isAI: false },
-  ];
+  { src: "/images/ai/ai1.jpg", isAI: true },
+  { src: "/images/ai/ai2.jpg", isAI: true },
+  { src: "/images/ai/ai3.jpg", isAI: true },
+
+  { src: "/images/real/real1.jpg", isAI: false },
+  { src: "/images/real/real2.jpg", isAI: false },
+  { src: "/images/real/real3.jpg", isAI: false },
+  { src: "/images/real/real4.jpg", isAI: false },
+];
+
 
   const hintsEasy = [
     "Arka plan detaylarına dikkat et.",
