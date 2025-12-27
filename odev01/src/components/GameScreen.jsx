@@ -1,112 +1,119 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
 
-function GameScreen() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // StartScreen'den gelen zorluk modu
-  const selectedMode = location.state?.mode ?? "easy";
-
-  const [images, setImages] = useState([]);
-  const [hintVisible, setHintVisible] = useState(false);
-  const [isFirstTry, setIsFirstTry] = useState(true);
-  const [currentRound, setCurrentRound] = useState(1);
+export default function GameScreen({ mode, data, onFinish }) {
+  const [currentIndex, setCurrentIndex] = useState(0); 
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0); 
+  const [showHint, setShowHint] = useState(false); 
+  const [timer, setTimer] = useState(10); 
+  const [feedback, setFeedback] = useState(null);
+  const [shuffledImages, setShuffledImages] = useState([]);
+  const currentQuestion = data[currentIndex];
 
-  const totalRounds = selectedMode === "easy" ? 5 : 8;
-
-  // Örnek görseller (AI ve gerçek karışık)
-  const imagePool = [
-  { src: "/images/ai/ai1.jpg", isAI: true },
-  { src: "/images/ai/ai2.jpg", isAI: true },
-  { src: "/images/ai/ai3.jpg", isAI: true },
-
-  { src: "/images/real/real1.jpg", isAI: false },
-  { src: "/images/real/real2.jpg", isAI: false },
-  { src: "/images/real/real3.jpg", isAI: false },
-  { src: "/images/real/real4.jpg", isAI: false },
-];
-
-
-  const hintsEasy = [
-    "Arka plan detaylarına dikkat et.",
-    "Gölgelendirmeye bak.",
-  ];
-
-  const hintsHard = [
-    "Yüz simetrisine dikkat et.",
-    "Gözlerdeki yapay parlaklığa bak.",
-    "Cilt dokusundaki kusursuzluğu incele.",
-  ];
-
-  const hints = selectedMode === "easy" ? hintsEasy : hintsHard;
-  const randomHint = hints[Math.floor(Math.random() * hints.length)];
-
-  // Her tur 3 görseli karıştırıp seç
-  const generateImages = () => {
-    const aiImages = imagePool.filter(img => img.isAI);
-    const realImages = imagePool.filter(img => !img.isAI);
-
-    const randomAI = aiImages[Math.floor(Math.random() * aiImages.length)];
-    const randomReals = realImages.sort(() => 0.5 - Math.random()).slice(0, 2);
-
-    const combined = [...randomReals, randomAI].sort(() => Math.random() - 0.5);
-    setImages(combined);
+  const shuffleArray = (array) => {
+    let newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
   };
 
   useEffect(() => {
-    generateImages();
-  }, [currentRound]);
+    if (currentQuestion) {
+      setShuffledImages(shuffleArray(currentQuestion.images));
+    }
+  }, [currentIndex, currentQuestion]);
 
-  const handleSelect = (img) => {
-    if (isFirstTry) {
-      if (img.isAI) {
-        setScore(score + 1);
-        nextRound();
-      } else {
-        setHintVisible(true);
-        setIsFirstTry(false);
-      }
+  useEffect(() => {
+    if (mode === 'hardcore') {
+      const interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            handleNextQuestion(false); 
+            return 10;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [mode, currentIndex]); 
+
+  const handleImageClick = (isAi) => {
+    if (feedback) return;
+    if (isAi) {
+      setFeedback("Tebrikler! Doğru Bildin.");
+      setScore(score + 10); 
+      setTimeout(() => handleNextQuestion(true), 1500); 
     } else {
-      if (img.isAI) setScore(score + 1);
-      nextRound();
+      if (mode === 'normal') {
+        if (attempts === 0) {
+          setShowHint(true);
+          setAttempts(1);
+          setFeedback("Yanlış! İpucu açıldı.");
+          setTimeout(() => setFeedback(null), 2000); 
+        } else {
+          setFeedback("Bilemedin :(");
+          setTimeout(() => handleNextQuestion(false), 1500);
+        }
+      } else {
+        setFeedback("Yanlış! Süre doldu.");
+        setTimeout(() => handleNextQuestion(false), 1500);
+      }
     }
   };
 
-  const nextRound = () => {
-    if (currentRound >= totalRounds) {
-      navigate("/result", { state: { score, totalRounds } });
-      return;
+  const handleNextQuestion = (isCorrect) => {
+    if (currentIndex < data.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setAttempts(0);
+      setShowHint(false);
+      setFeedback(null);
+      setTimer(10); 
+    } else {
+      onFinish(isCorrect ? score + 10 : score); 
     }
-
-    setHintVisible(false);
-    setIsFirstTry(true);
-    setCurrentRound(currentRound + 1);
   };
 
   return (
-    <div className="screen">
-      <h2>Tur {currentRound} / {totalRounds}</h2>
-
-      <div className="images">
-        {images.map((img, index) => (
-          <img
-            key={index}
-            src={img.src}
-            className="game-img"
-            onClick={() => handleSelect(img)}
-          />
-        ))}
+    <div className="game-container">
+      
+      <div className="stats-bar">
+        <span>Puan: <strong>{score}</strong></span>
+        {mode === 'hardcore' && (
+           <span style={{ color: timer < 4 ? '#ff4444' : 'white' }}>Süre: {timer}</span>
+        )}
+        <span>Soru: {currentIndex + 1} / {data.length}</span>
       </div>
 
-      {hintVisible && (
+      {showHint && (
         <div className="hint-box">
-          <p>❗ İpucu: {randomHint}</p>
+          <strong>💡 İpucu:</strong> {currentQuestion.hint}
         </div>
       )}
+
+      {feedback && (
+        <div className="feedback" style={{ color: feedback.includes("Tebrikler") ? '#00cc66' : '#ff4444' }}>
+          {feedback}
+        </div>
+      )}
+
+      <div className="image-grid">
+        {shuffledImages.map((img) => (
+          <div 
+            key={img.id} 
+            className="image-card"
+            onClick={() => handleImageClick(img.isAi)}
+            style={{ 
+              opacity: (showHint && !img.isAi && attempts > 0) ? 0.3 : 1,
+              cursor: feedback ? 'default' : 'pointer'
+            }}
+          >
+            <img src={img.src} alt="tahmin" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
-
-export default GameScreen;
